@@ -1,0 +1,321 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Pause, RotateCcw, Award } from 'lucide-react';
+
+export default function OperantConditioningSimulator() {
+  const [isRunning, setIsRunning] = useState(false);
+  const [schedule, setSchedule] = useState('continuous');
+  const [ratio, setRatio] = useState(5);
+  const [interval, setInterval] = useState(10);
+  const [leverPresses, setLeverPresses] = useState(0);
+  const [reinforcements, setReinforcements] = useState(0);
+  const [pressesSinceReinforcement, setPressesSinceReinforcement] = useState(0);
+  const [timeSinceReinforcement, setTimeSinceReinforcement] = useState(0);
+  const [showFoodAnimation, setShowFoodAnimation] = useState(false);
+  const [ratPosition, setRatPosition] = useState(60);
+  const [isPressingLever, setIsPressingLever] = useState(false);
+  const [pressRate, setPressRate] = useState([]);
+  const [motivation, setMotivation] = useState(100);
+  
+  const timerRef = useRef(null);
+  const motivationTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (isRunning) {
+      timerRef.current = setInterval(() => {
+        setTimeSinceReinforcement(prev => prev + 1);
+        
+        // Rat behavior based on motivation and schedule
+        const shouldPress = Math.random() < (motivation / 100) * 0.15;
+        if (shouldPress) {
+          handleLeverPress();
+        }
+      }, 1000);
+
+      motivationTimerRef.current = setInterval(() => {
+        setMotivation(prev => Math.max(20, prev - 0.5));
+      }, 2000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (motivationTimerRef.current) clearInterval(motivationTimerRef.current);
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (motivationTimerRef.current) clearInterval(motivationTimerRef.current);
+    };
+  }, [isRunning, motivation]);
+
+  const handleLeverPress = () => {
+    setLeverPresses(prev => prev + 1);
+    setPressesSinceReinforcement(prev => prev + 1);
+    setIsPressingLever(true);
+    setTimeout(() => setIsPressingLever(false), 200);
+
+    // Check if reinforcement should be delivered
+    let shouldReinforce = false;
+
+    switch (schedule) {
+      case 'continuous':
+        shouldReinforce = true;
+        break;
+      case 'fixed-ratio':
+        shouldReinforce = (pressesSinceReinforcement + 1) >= ratio;
+        break;
+      case 'variable-ratio':
+        const avgRatio = ratio;
+        const randomRatio = Math.floor(Math.random() * (avgRatio * 2 - 1)) + 1;
+        shouldReinforce = (pressesSinceReinforcement + 1) >= randomRatio;
+        break;
+      case 'fixed-interval':
+        shouldReinforce = timeSinceReinforcement >= interval;
+        break;
+      case 'variable-interval':
+        const avgInterval = interval;
+        shouldReinforce = timeSinceReinforcement >= avgInterval && Math.random() < 0.3;
+        break;
+      case 'extinction':
+        shouldReinforce = false;
+        break;
+    }
+
+    if (shouldReinforce) {
+      deliverReinforcement();
+    }
+
+    // Update press rate
+    setPressRate(prev => [...prev.slice(-20), Date.now()]);
+  };
+
+  const deliverReinforcement = () => {
+    setReinforcements(prev => prev + 1);
+    setPressesSinceReinforcement(0);
+    setTimeSinceReinforcement(0);
+    setShowFoodAnimation(true);
+    setMotivation(prev => Math.min(100, prev + 20));
+    setTimeout(() => setShowFoodAnimation(false), 1000);
+  };
+
+  const reset = () => {
+    setIsRunning(false);
+    setLeverPresses(0);
+    setReinforcements(0);
+    setPressesSinceReinforcement(0);
+    setTimeSinceReinforcement(0);
+    setPressRate([]);
+    setMotivation(100);
+  };
+
+  const getScheduleDescription = () => {
+    switch (schedule) {
+      case 'continuous':
+        return 'Every lever press is reinforced';
+      case 'fixed-ratio':
+        return `Reinforcement after every ${ratio} presses`;
+      case 'variable-ratio':
+        return `Reinforcement after an average of ${ratio} presses`;
+      case 'fixed-interval':
+        return `Reinforcement available every ${interval} seconds`;
+      case 'variable-interval':
+        return `Reinforcement available every ~${interval} seconds (variable)`;
+      case 'extinction':
+        return 'No reinforcement provided (extinction)';
+      default:
+        return '';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-8">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-bold text-gray-800 mb-2 text-center">
+          Operant Conditioning Simulator
+        </h1>
+        <p className="text-gray-600 text-center mb-8">
+          Train a virtual rat using different reinforcement schedules
+        </p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Control Panel */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Control Panel</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reinforcement Schedule
+                </label>
+                <select
+                  value={schedule}
+                  onChange={(e) => setSchedule(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  disabled={isRunning}
+                >
+                  <option value="continuous">Continuous (CRF)</option>
+                  <option value="fixed-ratio">Fixed Ratio (FR)</option>
+                  <option value="variable-ratio">Variable Ratio (VR)</option>
+                  <option value="fixed-interval">Fixed Interval (FI)</option>
+                  <option value="variable-interval">Variable Interval (VI)</option>
+                  <option value="extinction">Extinction</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">{getScheduleDescription()}</p>
+              </div>
+
+              {(schedule === 'fixed-ratio' || schedule === 'variable-ratio') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ratio: {ratio}
+                  </label>
+                  <input
+                    type="range"
+                    min="2"
+                    max="20"
+                    value={ratio}
+                    onChange={(e) => setRatio(Number(e.target.value))}
+                    className="w-full"
+                    disabled={isRunning}
+                  />
+                </div>
+              )}
+
+              {(schedule === 'fixed-interval' || schedule === 'variable-interval') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Interval: {interval}s
+                  </label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="30"
+                    value={interval}
+                    onChange={(e) => setInterval(Number(e.target.value))}
+                    className="w-full"
+                    disabled={isRunning}
+                  />
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsRunning(!isRunning)}
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md text-white font-medium ${
+                    isRunning ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                  }`}
+                >
+                  {isRunning ? <Pause size={20} /> : <Play size={20} />}
+                  {isRunning ? 'Pause' : 'Start'}
+                </button>
+                <button
+                  onClick={reset}
+                  className="px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-md"
+                >
+                  <RotateCcw size={20} />
+                </button>
+              </div>
+
+              <button
+                onClick={handleLeverPress}
+                className="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium"
+                disabled={isRunning}
+              >
+                Manual Lever Press
+              </button>
+            </div>
+          </div>
+
+          {/* Skinner Box Visualization */}
+          <div className="lg:col-span-2 bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Skinner Box</h2>
+            
+            <div className="relative bg-gray-100 rounded-lg h-96 border-4 border-gray-400 overflow-hidden">
+              {/* Back wall */}
+              <div className="absolute inset-0 bg-gradient-to-b from-gray-200 to-gray-300"></div>
+              
+              {/* Floor */}
+              <div className="absolute bottom-0 left-0 right-0 h-2 bg-gray-500"></div>
+              
+              {/* Lever */}
+              <div className="absolute left-20 bottom-20">
+                <div className={`w-16 h-4 rounded-t-lg transition-all ${
+                  isPressingLever ? 'bg-yellow-600 translate-y-2' : 'bg-yellow-500'
+                }`}></div>
+                <div className="w-2 h-16 bg-gray-600 mx-auto"></div>
+              </div>
+
+              {/* Food dispenser */}
+              <div className="absolute left-16 top-12 bg-gray-600 w-24 h-20 rounded-lg">
+                <div className="w-16 h-3 bg-gray-800 mx-auto mt-16 rounded-b-lg"></div>
+                {showFoodAnimation && (
+                  <div className="absolute top-16 left-1/2 transform -translate-x-1/2 animate-bounce">
+                    <div className="w-4 h-4 bg-yellow-400 rounded-full"></div>
+                  </div>
+                )}
+              </div>
+
+              {/* Rat */}
+              <div
+                className="absolute transition-all duration-300"
+                style={{ left: `${ratPosition}%`, bottom: '8%' }}
+              >
+                <div className="relative">
+                  <div className="w-16 h-10 bg-gray-600 rounded-full"></div>
+                  <div className="absolute -right-1 top-2 w-4 h-1 bg-gray-600 rounded"></div>
+                  <div className="absolute left-2 top-1 w-2 h-2 bg-pink-300 rounded-full"></div>
+                  <div className="absolute left-5 top-1 w-2 h-2 bg-pink-300 rounded-full"></div>
+                  <div className="absolute left-1 top-0 w-1 h-1 bg-black rounded-full"></div>
+                  <div className="absolute left-4 top-0 w-1 h-1 bg-black rounded-full"></div>
+                </div>
+              </div>
+
+              {/* Motivation indicator */}
+              <div className="absolute top-4 right-4 bg-white bg-opacity-90 p-3 rounded-lg">
+                <p className="text-xs font-medium text-gray-700 mb-1">Motivation</p>
+                <div className="w-32 h-3 bg-gray-300 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-green-500 transition-all"
+                    style={{ width: `${motivation}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Statistics */}
+          <div className="lg:col-span-3 bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Statistics</h2>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">Total Presses</p>
+                <p className="text-3xl font-bold text-blue-600">{leverPresses}</p>
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">Reinforcements</p>
+                <p className="text-3xl font-bold text-green-600">{reinforcements}</p>
+              </div>
+              
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">Presses Since Last</p>
+                <p className="text-3xl font-bold text-purple-600">{pressesSinceReinforcement}</p>
+              </div>
+              
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">Time Since Last</p>
+                <p className="text-3xl font-bold text-orange-600">{timeSinceReinforcement}s</p>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <h3 className="font-medium text-gray-700 mb-2">Learning Insights</h3>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• <strong>Response Rate:</strong> {leverPresses > 0 ? (leverPresses / Math.max(1, timeSinceReinforcement)).toFixed(2) : 0} presses/sec</li>
+                <li>• <strong>Reinforcement Rate:</strong> {leverPresses > 0 ? ((reinforcements / leverPresses) * 100).toFixed(1) : 0}%</li>
+                <li>• <strong>Current Schedule:</strong> {schedule.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
