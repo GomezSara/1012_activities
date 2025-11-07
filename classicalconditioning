@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en" role="document">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classical Conditioning: An Interactive Module</title>
+    <style>
+        /* --- ACCESSIBILITY AND BASE STYLES --- */
+        :root {
+            /* WCAG AA Accessible Palette */
+            --color-background: #F5FFEE; /* Very light green-white */
+            --color-text: #222222;
+            --color-primary-blue: #0066AA; /* Deep Blue for structure/actions */
+            --color-success-green: #28A745; /* Harmony Green for feedback */
+            --color-warning-orange: #FF8800;
+            --color-highlight-light: #66B2FF;
+            --color-drop-zone: #EEEEEE;
+            --color-card-bg: #FFFFFF;
+            --font-main: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--color-text);
+            background-color: var(--color-background);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Focus State for Operability */
+        :focus {
+            outline: 3px solid var(--color-highlight-light);
+            outline-offset: 2px;
+            border-radius: 4px; /* Ensure rounded corners for focus */
+        }
+        
+        /* Skip to Main Content Link */
+       .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            z-index: 999;
+            background-color: var(--color-primary-blue);
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+        }
+       .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+        }
+
+        /* --- LAYOUT AND TYPOGRAPHY --- */
+        header {
+            background-color: var(--color-primary-blue);
+            color: white;
+            padding: 25px 5%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        main {
+            padding: 30px 5%;
+            flex-grow: 1;
+        }
+
+        h1 { margin: 0; font-size: 2.5em; }
+        h2 { color: var(--color-primary-blue); border-bottom: 2px solid var(--color-highlight-light); padding-bottom: 8px; margin-top: 40px; font-size: 2em; }
+        h3 { color: var(--color-text); margin-top: 20px; font-size: 1.4em; }
+
+       .definition-box {
+            background-color: var(--color-card-bg);
+            border-left: 5px solid var(--color-success-green);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+       .definition-box h3 { margin: 0 0 5px 0; }
+       .definition-box p { margin: 0; font-size: 0.95em;}
+
+        /* --- GENERAL BUTTON STYLE --- */
+        button {
+            padding: 12px 25px;
+            background-color: var(--color-primary-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        button:hover {
+            background-color: #004F88;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* --- PROTOTYPE 1: DRAG-AND-DROP STYLES --- */
+        #core-components-challenge {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+       .drag-source, .drop-targets {
+            flex: 1 1 45%;
+            min-width: 300px;
+        }
+
+       .drag-source-list {
+            background-color: var(--color-card-bg);
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            min-height: 120px;
+        }
+
+       .draggable-item {
+            background-color: var(--color-primary-blue);
+            color: white;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 4px;
+            cursor: grab;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.1s;
+            font-weight: bold;
+        }
+
+       .draggable-item[aria-grabbed="true"] {
+            opacity: 0.7;
+        }
+       .draggable-item.hidden {
+            display: none;
+        }
+
+       .drop-target {
+            background-color: var(--color-drop-zone);
+            border: 2px dashed #999;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            min-height: 80px;
+            transition: background-color 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+       .drop-target h3 {
+            margin-top: 0;
+            font-size: 1.1em;
+            text-transform: uppercase;
+        }
+        
+       .drop-target.drag-over {
+            background-color: #D0EFFF; /* Light blue on hover */
+            border-color: var(--color-primary-blue);
+        }
+
+       .dropped-content {
+            background-color: #AACCFF; /* Lighter blue for dropped items */
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+            color: var(--color-text);
+        }
+        
+        /* Feedback Area */
+        #feedback-area {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            min-height: 40px;
+            background-color: white;
+            border: 1px solid #ccc;
+        }
+       .correct-feedback {
+            color: var(--color-success-green);
+        }
+       .incorrect-feedback {
+            color: #CC0000;
+        }
+       .neutral-feedback {
+            color: var(--color-text);
+        }
+
+        /* --- PROTOTYPE 2: SCENARIO QUIZ STYLES --- */
+        #prototype-2 .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 15px 0;
+        }
+       .quiz-options button {
+            background-color: var(--color-card-bg);
+            color: var(--color-text);
+            border: 1px solid var(--color-primary-blue);
+            text-align: left;
+            padding: 10px 15px;
+            font-size: 1em;
+        }
+       .quiz-options button:hover {
+            background-color: #F0F0FF;
+        }
+       .quiz-options button.correct-answer {
+            background-color: var(--color-success-green);
+            color: white;
+            border-color: var(--color-success-green);
+        }
+       .quiz-options button.incorrect-answer {
+            background-color: #FFDDDD;
+            color: var(--color-text);
+            border-color: #CC0000;
+        }
+        
+        #quiz-status {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            background-color: #FFFBE6; /* Light yellow background */
+            border: 1px solid var(--color-warning-orange);
+            font-weight: bold;
+            min-height: 40px;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: 30px;
+            font-size: 0.9em;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            #core-components-challenge {
+                flex-direction: column;
+            }
+           .drag-source, .drop-targets {
+                min-width: 100%;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to Main Content</a>
+
+    <header>
+        <h1>Classical Conditioning: An Interactive Learning Module</h1>
+        <p>A 60-Minute Lesson for College Freshmen on Pavlovian Conditioning and its Applications</p>
+    </header>
+
+    <main id="main-content">
+        <section id="introduction" aria-labelledby="intro-heading">
+            <h2 id="intro-heading">I. Core Components: The Language of Learning</h2>
+            <p>Classical conditioning is a fundamental learning process based on **association**, first explored by Ivan Pavlov. To analyze any conditioned behavior, we must first master the five core components, which act as the building blocks of learned behavior.</p>
+
+            <div class="definition-box" role="article">
+                <h3>Neutral Stimulus (NS)</h3>
+                <p>A stimulus that initially produces **no specific response** before pairing. <em>(Example: The sound of a bell before it is paired with food.)</em></p>
+            </div>
+            <div class="definition-box" role="article">
+                <h3>Unconditioned Stimulus (UCS)</h3>
+                <p>A stimulus that **naturally and automatically** triggers a response without prior learning. <em>(Example: Food, which naturally causes salivation.)</em></p>
+            </div>
+            <div class="definition-box" role="article">
+                <h3>Unconditioned Response (UCR)</h3>
+                <p>The natural and automatic response to the UCS. <em>(Example: Salivation in response to food.)</em></p>
+            </div>
+            <div class="definition-box" role="article">
+                <h3>Conditioned Stimulus (CS)</h3>
+                <p>A previously neutral stimulus (NS) that, after **repeated pairing** with the UCS, eventually elicits a learned response. <em>(Example: The bell after it has been paired with food.)</em></p>
+            </div>
+            <div class="definition-box" role="article">
+                <h3>Conditioned Response (CR)</h3>
+                <p>The **learned response** to the Conditioned Stimulus (CS). This is often the same behavior as the UCR, but is triggered by the CS. <em>(Example: Salivation in response to the bell alone.)</em></p>
+            </div>
+        </section>
+
+        <section id="core-components-challenge" aria-labelledby="challenge-heading">
+            <h2 id="challenge-heading">II. Prototype 1: Component Classifier Challenge (MLO 1)</h2>
+            <p><strong>Goal:</strong> Correctly classify the components in this modern scenario. Use the mouse to drag or the keyboard (Space/Enter to grab, Tab to move, Enter to drop) to place each term into the correct category.</p>
+
+            <h3>Scenario: Morning Coffee Alertness</h3>
+            <p>You are someone who cannot start the day without coffee. The **aroma of brewing coffee** (initially just a smell) is paired every morning with the subsequent mental and physical **alertness and excitement** that follows consumption. Now, whenever you smell the coffee brewing, you immediately feel a surge of **alertness and excitement** even before taking the first sip.</p>
+
+            <div id="classifier-prototype">
+                <div class="drag-source">
+                    <h3>Available Components</h3>
+                    <div class="drag-source-list" role="group" aria-label="Available components to drag and drop">
+                        <div class="draggable-item" id="item-cs" draggable="true" tabindex="0" aria-grabbed="false">Aroma of Brewing Coffee (After Pairing)</div>
+                        <div class="draggable-item" id="item-cr" draggable="true" tabindex="0" aria-grabbed="false">Alertness and Excitement (When Smelling Coffee)</div>
+                        <div class="draggable-item" id="item-ucs" draggable="true" tabindex="0" aria-grabbed="false">Anticipation for the Day Ahead / Caffeine Effect</div>
+                        <div class="draggable-item" id="item-ucr" draggable="true" tabindex="0" aria-grabbed="false">Alertness and Excitement (Natural Response to Caffeine)</div>
+                        <div class="draggable-item" id="item-ns" draggable="true" tabindex="0" aria-grabbed="false">Aroma of Brewing Coffee (Before Pairing)</div>
+                    </div>
+                </div>
+
+                <div class="drop-targets">
+                    <h3>Classical Conditioning Categories</h3>
+                    <div class="drop-target" data-target-id="item-ns" id="drop-ns" role="region" aria-label="Drop target for Neutral Stimulus" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"><h3>Neutral Stimulus (NS)</h3></div>
+                    <div class="drop-target" data-target-id="item-ucs" id="drop-ucs" role="region" aria-label="Drop target for Unconditioned Stimulus" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"><h3>Unconditioned Stimulus (UCS)</h3></div>
+                    <div class="drop-target" data-target-id="item-ucr" id="drop-ucr" role="region" aria-label="Drop target for Unconditioned Response" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"><h3>Unconditioned Response (UCR)</h3></div>
+                    <div class="drop-target" data-target-id="item-cs" id="drop-cs" role="region" aria-label="Drop target for Conditioned Stimulus" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"><h3>Conditioned Stimulus (CS)</h3></div>
+                    <div class="drop-target" data-target-id="item-cr" id="drop-cr" role="region" aria-label="Drop target for Conditioned Response" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"><h3>Conditioned Response (CR)</h3></div>
+                </div>
+            </div>
+
+            <div id="feedback-area" role="status" aria-live="polite" class="neutral-feedback">Drag or use the keyboard to classify the components.</div>
+            <button id="reset-button" onclick="resetQuiz(1)" aria-controls="classifier-prototype feedback-area">Reset Challenge</button>
+        </section>
+
+        <section id="dynamic-phenomena" aria-labelledby="dynamic-heading">
+            <h2 id="dynamic-heading">III. Dynamic Phenomena (MLO 2)</h2>
+            <p>Conditioned responses are not permanent. They can change, disappear, and reappear based on environmental cues.</p>
+            
+            <div class="definition-box" role="article" style="border-left-color: var(--color-warning-orange);">
+                <h3>Extinction</h3>
+                <p>The **gradual weakening and eventual disappearance** of a conditioned response when the CS is repeatedly presented without the UCS.</p>
+            </div>
+            <div class="definition-box" role="article" style="border-left-color: var(--color-warning-orange);">
+                <h3>Spontaneous Recovery</h3>
+                <p>The **reappearance of a weakened conditioned response** after a rest period following extinction. This shows the original learning is not truly forgotten.</p>
+            </div>
+            <div class="definition-box" role="article" style="border-left-color: var(--color-primary-blue);">
+                <h3>Stimulus Generalization</h3>
+                <p>The tendency for stimuli **similar to the CS** (but not identical) to also elicit the conditioned response.</p>
+            </div>
+            <div class="definition-box" role="article" style="border-left-color: var(--color-primary-blue);">
+                <h3>Stimulus Discrimination</h3>
+                <p>The learned ability to **distinguish** between a conditioned stimulus and other irrelevant stimuli, leading to a response only for the true CS.</p>
+            </div>
+            <div class="definition-box" role="article" style="border-left-color: #AA66BB;">
+                <h3>Second-Order Conditioning</h3>
+                <p>A new neutral stimulus (NS2) is paired with an existing Conditioned Stimulus (CS1) and eventually becomes a Conditioned Stimulus (CS2) itself, eliciting the CR.</p>
+            </div>
+        </section>
+
+        <section id="prototype-2" aria-labelledby="prototype-2-heading">
+            <h2 id="prototype-2-heading">IV. Prototype 2: Dynamic Scenario Quiz (MLO 2)</h2>
+            <p><strong>Scenario:</strong> Mia developed a fear (CR) of all dentists (CS) after a painful procedure (UCS) done by Dr. Smith.</p>
+            
+            <div id="quiz-container">
+                <!-- Quiz Question 1 -->
+                <div id="q-1" class="quiz-question" aria-live="polite" aria-label="Question 1">
+                    <h3>Question 1: Generalization or Discrimination?</h3>
+                    <p>Mia's fear extends to all doctors in white coats, even her pediatrician who has never hurt her. What is this phenomenon?</p>
+                    <div class="quiz-options" role="radiogroup" aria-labelledby="q-1">
+                        <button onclick="checkAnswer(1, 0)">Stimulus Discrimination</button>
+                        <button onclick="checkAnswer(1, 1)">Stimulus Generalization</button>
+                    </div>
+                </div>
+
+                <!-- Quiz Question 2 -->
+                <div id="q-2" class="quiz-question" aria-live="polite" aria-label="Question 2" style="display: none;">
+                    <h3>Question 2: Extinction</h3>
+                    <p>Mia starts seeing a new, very gentle dentist, Dr. Jones, for check-ups over several years without any pain. Her fear of dentists gradually disappears. What process has occurred?</p>
+                    <div class="quiz-options" role="radiogroup" aria-labelledby="q-2">
+                        <button onclick="checkAnswer(2, 0)">Spontaneous Recovery</button>
+                        <button onclick="checkAnswer(2, 1)">Extinction</button>
+                    </div>
+                </div>
+
+                <!-- Quiz Question 3 -->
+                <div id="q-3" class="quiz-question" aria-live="polite" aria-label="Question 3" style="display: none;">
+                    <h3>Question 3: Spontaneous Recovery</h3>
+                    <p>A year after her fear had completely disappeared, Mia sees a picture of Dr. Smith in the newspaper and feels a brief, sudden surge of anxiety. What phenomenon is this?</p>
+                    <div class="quiz-options" role="radiogroup" aria-labelledby="q-3">
+                        <button onclick="checkAnswer(3, 0)">Second-Order Conditioning</button>
+                        <button onclick="checkAnswer(3, 1)">Spontaneous Recovery</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="quiz-status" role="status" aria-live="polite">Quiz Progress: 0/3</div>
+            <button id="quiz-reset-button" onclick="resetQuiz(2)" aria-controls="quiz-container quiz-status">Reset Quiz</button>
+        </section>
+
+        <section id="applications" aria-labelledby="applications-heading">
+            <h2 id="applications-heading">V. Real-World Applications (MLO 3)</h2>
+            <p>The principles of classical conditioning are not just theoretical; they are utilized daily across many disciplines.</p>
+
+            <ul>
+                <li role="listitem">
+                    **Therapy (Phobias):** Techniques like **Systematic Desensitization** use conditioning to treat phobias. The fear-inducing stimulus (CS) is repeatedly paired with a relaxing state (new UCS), gradually replacing the fear (CR) with calm.
+                </li>
+                <li role="listitem">
+                    **Education:** Teachers can create a positive and supportive classroom environment (UCS) to associate the act of learning (CS) with feelings of safety and enjoyment (CR).
+                </li>
+                <li role="listitem">
+                    **Animal Training:** The classic example is pairing a command (CS, e.g., "sit") with an immediate reward (UCS, e.g., a treat) to train the animal to perform the behavior (CR).
+                </li>
+                <li role="listitem">
+                    **Taste Aversion:** A powerful biological example where a single pairing of a specific food (CS) with feeling sick (UCS) can lead to a strong, long-lasting dislike (CR) for that food.
+                </li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Interactive Psychology Learning Module. For Educational Use Only.</p>
+    </footer>
+
+    <script>
+        const app = {
+            // --- PROTOTYPE 1 (Drag & Drop) elements ---
+            dragItems: document.querySelectorAll('.draggable-item'),
+            dropTargets: document.querySelectorAll('.drop-target'),
+            feedbackArea: document.getElementById('feedback-area'),
+            keyboardGrabbedItemId: null,
+
+            // --- PROTOTYPE 2 (Scenario Quiz) data and elements ---
+            quizData: [
+                { id: 1, correctIndex: 1, explanation: "Correct! This is **Stimulus Generalization**—the fear (CR) is spreading to similar, neutral stimuli (other doctors in white coats)." },
+                { id: 2, correctIndex: 1, explanation: "Exactly. The repeated presentation of the CS (dentist) without the UCS (pain) leads to **Extinction** of the conditioned fear." },
+                { id: 3, correctIndex: 1, explanation: "Correct! **Spontaneous Recovery** is the brief, sudden return of the conditioned response after a period of extinction. The learning was suppressed, not forgotten." }
+            ],
+            quizElements: document.querySelectorAll('.quiz-question'),
+            currentQuestionIndex: 0,
+            quizScore: 0,
+            quizStatusElement: document.getElementById('quiz-status'),
+
+            // Utility function for feedback
+            setFeedback(message, type, area = app.feedbackArea) {
+                area.textContent = message;
+                area.className = '';
+                area.classList.add(type + '-feedback');
+                area.setAttribute('aria-label', type + ' feedback: ' + message);
+            },
+            
+            // --- PROTOTYPE 1 LOGIC (Drag & Drop) ---
+            initDragAndDrop() {
+                app.dragItems.forEach(item => {
+                    item.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', e.target.id);
+                        e.target.setAttribute('aria-grabbed', 'true');
+                    });
+                    item.addEventListener('dragend', (e) => {
+                        e.target.setAttribute('aria-grabbed', 'false');
+                    });
+
+                    // Keyboard handler for grabbing items
+                    item.addEventListener('keydown', (e) => {
+                        // FIX: Syntax error from previous version corrected here (using || instead of |)
+                        if (e.key === ' ' || e.key === 'Enter') {
+                            e.preventDefault();
+                            app.toggleGrab(e.target);
+                        }
+                    });
+                });
+
+                app.dropTargets.forEach(target => {
+                    target.addEventListener('dragover', app.allowDrop);
+                    target.addEventListener('dragleave', app.dragLeave);
+                    target.addEventListener('drop', app.drop);
+                    
+                    // Keyboard handler for dropping items
+                    target.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && app.keyboardGrabbedItemId) {
+                            e.preventDefault();
+                            app.drop({ currentTarget: e.currentTarget, dataTransfer: null }); // Mock event
+                        }
+                    });
+                    
+                    target.addEventListener('focus', (e) => e.currentTarget.classList.add('drag-over'));
+                    target.addEventListener('blur', (e) => e.currentTarget.classList.remove('drag-over'));
+                });
+            },
+
+            toggleGrab(itemElement) {
+                if (app.keyboardGrabbedItemId === itemElement.id) {
+                    // Deselect
+                    app.keyboardGrabbedItemId = null;
+                    itemElement.setAttribute('aria-grabbed', 'false');
+                    app.setFeedback('Item deselected.', 'neutral');
+                } else {
+                    // Grab item (first un-grab any existing item)
+                    if (app.keyboardGrabbedItemId) {
+                        const previousItem = document.getElementById(app.keyboardGrabbedItemId);
+                        if (previousItem) previousItem.setAttribute('aria-grabbed', 'false');
+                    }
+                    app.keyboardGrabbedItemId = itemElement.id;
+                    itemElement.setAttribute('aria-grabbed', 'true');
+                    app.setFeedback(`Grabbed: ${itemElement.textContent.trim()}. Now Tab to a category and press Enter to drop.`, 'neutral');
+                }
+            },
+
+            allowDrop(e) {
+                e.preventDefault();
+                e.currentTarget.classList.add('drag-over');
+            },
+
+            dragLeave(e) {
+                e.currentTarget.classList.remove('drag-over');
+            },
+
+            drop(e) {
+                e.preventDefault();
+                e.currentTarget.classList.remove('drag-over');
+
+                const data = e.dataTransfer ? e.dataTransfer.getData('text/plain') : app.keyboardGrabbedItemId;
+                const draggedElement = document.getElementById(data);
+                
+                if (!draggedElement) return;
+
+                // Clear keyboard state after drop attempt
+                if (app.keyboardGrabbedItemId) {
+                    draggedElement.setAttribute('aria-grabbed', 'false');
+                    app.keyboardGrabbedItemId = null;
+                }
+
+                app.processDrop(draggedElement, e.currentTarget);
+            },
+
+            processDrop(itemElement, targetElement) {
+                const droppedItemId = itemElement.id;
+                const correctTargetId = targetElement.dataset.targetId;
+
+                if (droppedItemId === correctTargetId) {
+                    // Correct Drop
+                    app.setFeedback(`Correct! You identified the ${targetElement.querySelector('h3').textContent}. All core components are now identified.`, 'correct');
+                    
+                    itemElement.classList.add('hidden');
+                    const droppedContent = document.createElement('div');
+                    droppedContent.classList.add('dropped-content');
+                    droppedContent.textContent = itemElement.textContent;
+                    
+                    // Clear previous content
+                    while (targetElement.querySelector('.dropped-content')) {
+                        targetElement.querySelector('.dropped-content').remove();
+                    }
+                    targetElement.appendChild(droppedContent);
+                    itemElement.setAttribute('tabindex', '-1');
+                    targetElement.setAttribute('tabindex', '-1');
+
+                } else {
+                    // Incorrect Drop
+                    app.setFeedback(`Incorrect. The item "${itemElement.textContent.trim()}" is not the ${targetElement.querySelector('h3').textContent}. Please re-grab and try again.`, 'incorrect');
+                }
+            },
+
+            // --- PROTOTYPE 2 LOGIC (Quiz) ---
+            updateQuizStatus() {
+                app.quizStatusElement.textContent = `Quiz Progress: ${app.quizScore}/${app.quizData.length}`;
+            },
+
+            showQuestion(index) {
+                app.quizElements.forEach(q => q.style.display = 'none');
+                if (app.quizElements[index]) {
+                    app.quizElements[index].style.display = 'block';
+                    app.quizElements[index].focus(); // Set focus to the question container
+                }
+            },
+
+            checkAnswer(questionId, selectedIndex) {
+                const qData = app.quizData.find(d => d.id === questionId);
+                const questionElement = document.getElementById(`q-${questionId}`);
+                const options = questionElement.querySelectorAll('button');
+
+                if (!qData) return;
+
+                // Disable all options for this question
+                options.forEach(btn => btn.disabled = true);
+                
+                // Provide visual feedback
+                if (selectedIndex === qData.correctIndex) {
+                    options[selectedIndex].classList.add('correct-answer');
+                    app.quizScore++;
+                    app.setFeedback(`Question ${questionId}: Correct! ${qData.explanation}`, 'correct', app.quizStatusElement);
+                } else {
+                    options[selectedIndex].classList.add('incorrect-answer');
+                    options[qData.correctIndex].classList.add('correct-answer');
+                    app.setFeedback(`Question ${questionId}: Incorrect. The correct answer is highlighted. ${qData.explanation}`, 'incorrect', app.quizStatusElement);
+                }
+
+                app.updateQuizStatus();
+
+                // Move to the next question after a brief delay
+                setTimeout(() => {
+                    app.currentQuestionIndex = questionId;
+                    if (app.currentQuestionIndex < app.quizData.length) {
+                        app.showQuestion(app.currentQuestionIndex);
+                    } else {
+                        app.setFeedback(`Quiz Complete! Final Score: ${app.quizScore}/${app.quizData.length}. Review the Applications section below.`, 'neutral', app.quizStatusElement);
+                    }
+                }, 2000);
+            },
+            
+            // --- RESET LOGIC ---
+            resetQuiz(quizNumber) {
+                if (quizNumber === 1) {
+                    // Reset Prototype 1 (Drag & Drop)
+                    app.dragItems.forEach(item => {
+                        item.classList.remove('hidden');
+                        item.setAttribute('aria-grabbed', 'false');
+                        item.setAttribute('tabindex', '0');
+                    });
+                    app.dropTargets.forEach(target => {
+                        const droppedContent = target.querySelector('.dropped-content');
+                        if (droppedContent) droppedContent.remove();
+                        target.classList.remove('drag-over');
+                        target.setAttribute('tabindex', '0');
+                    });
+                    app.setFeedback('Challenge reset. Start classifying the components again.', 'neutral');
+                    app.keyboardGrabbedItemId = null;
+                    document.getElementById('item-cs').focus();
+                } else if (quizNumber === 2) {
+                    // Reset Prototype 2 (Scenario Quiz)
+                    app.quizScore = 0;
+                    app.currentQuestionIndex = 0;
+                    app.updateQuizStatus();
+                    app.showQuestion(0);
+                    app.setFeedback('Quiz Progress: 0/3. Good luck!', 'neutral', app.quizStatusElement);
+                    
+                    app.quizElements.forEach((q, index) => {
+                        const options = q.querySelectorAll('button');
+                        options.forEach(btn => {
+                            btn.disabled = false;
+                            btn.classList.remove('correct-answer', 'incorrect-answer');
+                        });
+                    });
+                }
+            }
+        };
+
+        // Initialize on load
+        window.onload = () => {
+            app.initDragAndDrop();
+            app.showQuestion(0); // Show the first quiz question
+            app.updateQuizStatus();
+            document.getElementById('item-cs').focus(); // Initial focus for P1
+        };
+
+        // Expose functions globally for HTML click handlers
+        window.checkAnswer = app.checkAnswer;
+        window.resetQuiz = app.resetQuiz;
+        window.allowDrop = app.allowDrop;
+        window.dragLeave = app.dragLeave;
+        window.drop = app.drop;
+
+    </script>
+</body>
+</html>
